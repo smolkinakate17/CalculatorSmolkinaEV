@@ -9,26 +9,34 @@ namespace CalculatorSmolkinaEV
     public class Calculator
     {
         #region private fields
-        private string _num1 = "";
-        private string _num2 = "";
+        private string _num1 = "0";
+        private string _num2 = "0";
         private char? _oper = null;
         private bool _comma = false;
         private string _result = "";
         private bool _isEqualClick = false;
         private int _count;
+        private bool autoNum2 = false;
         #endregion
 
         #region public fields
+        public bool AutoNum2
+        {
+            get { return autoNum2; }
+            set { autoNum2 = value; }
+        }
         public string num1
         {
 
             get { return _num1; }
+            set { _num1 = value; }
         }
 
         public string num2
         {
 
             get { return _num2; }
+            set { _num2 = value; }  
         }
 
         public char? oper
@@ -47,42 +55,65 @@ namespace CalculatorSmolkinaEV
 
         #endregion
 
-        #region private func return bool (checks)
-        private bool CanDoDel(string str)
+        #region public func return bool (checks)
+        public bool CanDoDel(string str)
         {
             return !str.Equals("");
         }
-        private bool IsFirstNumber()
+        public bool IsFirstNumber()
         {
             return _oper == null;
         }
 
-        private bool CanDoNumber()
+        public bool CanDoNumber()
         {
             return _count < 13;
         }
 
 
-        private bool CanPrintOper()
+        public bool CanPrintOper()
         {
+            
+            if (_num1.Contains(","))
+            {
+                int index = _num1.IndexOf(",");
+                if(num1.Substring(index + 1).Equals(""))
+                {
+                    return false;
+                }
+            }
+            if (_isEqualClick)
+            {
+                _isEqualClick = false;
+                _oper = null;
+            }
             return _num1 != "" && _oper == null;
         }
-        private bool CanDoComma()
+        public bool CanDoComma()
         {
-            if (!(_num1.Contains(",") && _num2.Contains(",")) && _count < 13)
+            if (!(_comma) && _count < 13)
             {
+                if(IsFirstNumber()&&_num1.Equals(""))
+                {
+                    return false;
+                }
+                if (!IsFirstNumber() && _num2.Equals(""))
+                {
+                    return false;
+                }
+                
                 _comma = true;
                 return true;
             }
             return false;
         }
-        private bool CanDoOper()
+        public bool CanDoOper()
         {
             return !(_oper == null);
         }
-        private bool CanDoEqual()
+        public bool CanDoEqual()
         {
-            return _num1 != "" && _num2 != "";
+            return _num1 != "" && _num2 != "" && _oper!=null;
         }
         #endregion
 
@@ -186,153 +217,99 @@ namespace CalculatorSmolkinaEV
         #region public func
         public string DoNumber(string str)
         {
-            if (_isEqualClick)
+            _count++;
+            if (IsFirstNumber())
             {
-                Clear();
-
-            }
-            if (CanDoNumber())
-            {
-                _count++;
-                if (IsFirstNumber())
+                if (_num1.Equals("0"))
                 {
-                    _num1 += str;
-                    return _num1;
+                    _num1 = "";
                 }
-                else
-                {
-                    _num2 += str;
-                    return _num2;
-                }
+                _num1 += str;
+                return _num1;
             }
             else
             {
-                if (IsFirstNumber())
+                if (autoNum2)
                 {
-                    return _num1;
+                    _num2 = "";
+                    autoNum2 = false;
                 }
-                else
-                {
-                    return _num2;
-                }
-
+                _num2 += str;
+                return _num2;
             }
+
+            
 
         }
         public string PrintOper(string str)
         {
-            string number = _num1;
-            Clear();
-            _num1 = number;
-            if (CanPrintOper())
-            {
-                if (_isEqualClick)
-                {
-                    _isEqualClick = false;
-                }
-                _oper = char.Parse(str);
-                _comma = false;
-                _count = 0;
-                return _num1 + " " + _oper.ToString() + " ";
-            }
-            else
-            {
-                return " ";
-            }
+            _oper = char.Parse(str);
+            isEqualClick = false;
+            _comma = false;
+            _count = 0;
+            return _num1 + " " + str + " ";
+
+            
+            
         }
 
         public string DoEqual()
         {
-            if (CanDoEqual())
+            DoOper();
+            _comma = false;
+            _count = 0;
+            if (_result.Equals("Нельзя делить на 0"))
             {
-                DoOper();
-                if (_result.Equals("Нельзя делить на 0"))
-                {
-                    Clear();
-                    _isEqualClick = true;
-                    return "Нельзя делить на 0";
+                Clear();
+                _isEqualClick = true;
+                return "Нельзя делить на 0";
+            }
+            _isEqualClick = true;
+            _num1 = _result;
+            return _result;
+                
 
-                }
-                else
-                {
-                    string res = _result;
-                    string number2 = _num2;
-                    char? operat = _oper;
-                    Clear();
-                    _isEqualClick = true;
-                    _num2 = number2;
-                    _oper = operat;
-                    _num1 = res;
-                    return res;
-                }
-            }
-            else
-            {
-                if (!_num1.Equals(""))
-                {
-                    _isEqualClick = true;
-                    return _num1;
-                }
-                return "";
-            }
         }
 
         public string DoComma()
         {
-            if (CanDoComma())
+
+            if (IsFirstNumber())
             {
-                if (IsFirstNumber())
-                {
-                    _num1 += ",";
-                    return _num1;
-                }
-                else
-                {
-                    _num2 += ",";
-                    return _num2;
-                }
+                _num1 += ",";
+                return _num1;
             }
             else
             {
-                if (IsFirstNumber())
+                if (autoNum2)
                 {
-                    return _num1;
+                    _num2 = "0";
+                    autoNum2 = false;
                 }
-                else
-                {
-                    return _num2;
-                }
+                _num2 += ",";
+                return _num2;
             }
+
+
         }
 
-        public string DoDel(string str)
+        public string DoDel()
         {
-            if (CanDoDel(str))
-            {
-                if (_isEqualClick)
-                {
-                    Clear();
-                    return "";
-                }
-                else
-                {
-                    if (IsFirstNumber())
-                    {
-                        _num1 = Del(_num1);
-                        return _num1;
-                    }
-                    else
-                    {
-                        _num2 = Del(_num2);
-                        return _num2;
-                    }
-                }
 
-            }
-            else
+            if (_isEqualClick)
             {
+                Clear();
+                _isEqualClick = true;
                 return "";
             }
+            if (IsFirstNumber())
+            {
+                _num1 = Del(_num1);
+                return _num1;
+            }
+            _num2 = Del(_num2);
+            return _num2;
+           
 
         }
         public void DoOper()
@@ -380,7 +357,7 @@ namespace CalculatorSmolkinaEV
             }
         }
         #endregion
-        private void Clear()
+        public void Clear()
         {
             _num1 = "";
             _num2 = "";
