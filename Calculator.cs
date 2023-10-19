@@ -113,6 +113,14 @@ namespace CalculatorSmolkinaEV
         }
         public bool CanDoEqual()
         {
+            if (_num2.Contains(","))
+            {
+                int index = _num2.IndexOf(",");
+                if (num2.Substring(index + 1).Equals(""))
+                {
+                    return false;
+                }
+            }
             return _num1 != "" && _num2 != "" && _oper!=null;
         }
         #endregion
